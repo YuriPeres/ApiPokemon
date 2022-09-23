@@ -3,10 +3,14 @@ package com.apipokemon.apipokemon;
 import com.apipokemon.apipokemon.model.Pokemon;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
 
 @SpringBootTest
 class ApiPokemonApplicationTests {
@@ -24,15 +28,22 @@ class ApiPokemonApplicationTests {
         UriComponents uri = UriComponentsBuilder.newInstance()
                 .scheme("https")
                 .host("pokeapi.co/")
-                .path("api/v2/pokemon/35")
-                .queryParam("pokemon","all")
+                .path("api/v2/pokemon")
+                //.queryParam("pokemon","all")
                 .build();
 
-        ResponseEntity<Pokemon> pokemon = template.getForEntity(uri.toUriString(), Pokemon.class);
+        ResponseEntity<List<Pokemon>> pokedexLista = template.exchange
+                (
+                        uri.toUriString(),
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<List<Pokemon>>() {
+                        }
+                );
 
-        System.out.println(pokemon);
-        System.out.println(pokemon.getBody().getId());
-        System.out.println(pokemon.getBody().getName());
+//        System.out.println("---> Pokedex\n" + pokedexLista);
+//        System.out.println("---> Pokedex getPokemons\n" + pokedexLista.getBody().get(2));
+        System.out.println("---> Pokedex getBody\n" + pokedexLista.getBody());
     }
 
 }
