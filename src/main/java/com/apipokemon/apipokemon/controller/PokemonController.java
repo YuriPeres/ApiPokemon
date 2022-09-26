@@ -1,18 +1,13 @@
 package com.apipokemon.apipokemon.controller;
 
 import com.apipokemon.apipokemon.dtos.PokemonDto;
-import com.apipokemon.apipokemon.model.Pokedex;
 import com.apipokemon.apipokemon.model.Pokemon;
 import com.apipokemon.apipokemon.service.PokemonService;
 import lombok.AllArgsConstructor;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.List;
 
 @AllArgsConstructor
 @RestController
@@ -29,7 +24,7 @@ public class PokemonController {
 
     @GetMapping("/{idOuNome}")
     @ResponseBody
-    public Pokemon buscarPorIdOuNome(@PathVariable String idOuNome){
+    public PokemonDto buscarPorIdOuNome(@PathVariable String idOuNome){
         UriComponents uri = UriComponentsBuilder.newInstance()
                 .scheme("https")
                 .host("pokeapi.co/")
