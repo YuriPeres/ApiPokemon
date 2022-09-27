@@ -11,12 +11,15 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "tb_type")
+@Entity(name = "tb_tipo")
 public class Type {
 
     @Id
     @Column(name = "id")
     private Long id;
+
+    @Column(name = "name")
+    private String name;
 
     @ManyToMany(mappedBy = "types")
     private List<Pokemon> pokemons;

@@ -34,7 +34,7 @@ public class PokemonService {
         this.uri = UriComponentsBuilder.newInstance()
                 .scheme("https")
                 .host("pokeapi.co/")
-                .path("api/v2/pokemon")
+                .path("api/v2/")
                 //.queryParam("idOuNome","all")
                 .build();
         this.template = new RestTemplateBuilder()
@@ -62,20 +62,20 @@ public class PokemonService {
     @Transactional
     public PokemonDto buscarPorIdOuNome(String idOuNome) {
         Pokemon pokemon = new Pokemon();
-        PokemonDto dto = template.getForObject("/{idOuNome}", PokemonDto.class,idOuNome);
+        PokemonDto dto = template.getForObject("/pokemon/{idOuNome}", PokemonDto.class,idOuNome);
         pokemon.setId(dto.getId());
         pokemon.setName(dto.getName());
-        List<String> listaTipos= new ArrayList<>();
-        for (TypeDto elementoListaTipos: dto.getTypes()){
-            for (String linha: elementoListaTipos.getType().values()){
-                if(linha.contains("https")){
-                    listaTipos.add(linha);
-                    System.out.println("Entrou aqui");
-                }
-                System.out.println("Fora: "+ linha);
-            }
+
+        if(dto.getTypes().size()>=0){
+            String nomeTipo = dto.getTypes().get(0).getType().get("name");
+            TypeDto tipoId = template.getForObject("/type/{nomeTipo}", TypeDto.class, nomeTipo);
+            pokemon.setTipoUm(tipoId.getId());
         }
-        System.out.println("Lista tipos: "+listaTipos);
+        if(dto.getTypes().size()>=1){
+            String urlTipo = dto.getTypes().get(1).getType().get("url");
+            pokemon.setTipoDois(Long.parseLong(urlTipo.substring(30).replace("/","")));
+        }
+        System.out.println("Nome tipo -> "+pokemon);
 
 
 

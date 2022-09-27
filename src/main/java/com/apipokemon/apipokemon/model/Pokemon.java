@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.List;
 
-@Entity @Data
+@Entity(name = "tb_pokemon") @Data
 @AllArgsConstructor @NoArgsConstructor
 public class Pokemon {
 
