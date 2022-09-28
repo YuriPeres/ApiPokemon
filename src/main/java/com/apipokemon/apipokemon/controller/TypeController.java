@@ -1,8 +1,10 @@
 package com.apipokemon.apipokemon.controller;
 
 import com.apipokemon.apipokemon.dtos.PokemonDto;
+import com.apipokemon.apipokemon.dtos.TypeDto;
 import com.apipokemon.apipokemon.dtos.TypeRelationsDto;
 import com.apipokemon.apipokemon.model.Pokemon;
+import com.apipokemon.apipokemon.model.Type;
 import com.apipokemon.apipokemon.service.PokemonService;
 import com.apipokemon.apipokemon.service.TypeService;
 import lombok.AllArgsConstructor;
@@ -26,10 +28,10 @@ public class TypeController {
 //        return service.listarPokemons();
 //    }
 
-    @GetMapping("/relations")
-    public TypeRelationsDto getRelations(){
+    @GetMapping("/get_all")
+    public List<Type> getRelations(){
 
-        return service.getAllTypesRelations();
+        return service.getAllTypes();
     }
 
 }

@@ -25,10 +25,6 @@ public class Pokemon {
     )
     private List<Type> types;
 
-    @Column(name = "tipoUm")
-    private Long tipoUm;
-    @Column(name = "tipoDois")
-    private Long tipoDois;
 
 
 }

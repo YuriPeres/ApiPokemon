@@ -16,6 +16,6 @@ public class TypeRelationsDto {
     private Long id;
     private ArrayList<String> forteContra;
     private ArrayList<String> fracoFraco;
-    
+
 
 }
