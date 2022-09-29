@@ -1,17 +1,9 @@
 package com.apipokemon.apipokemon.controller;
 
-import com.apipokemon.apipokemon.dtos.PokemonDto;
-import com.apipokemon.apipokemon.dtos.TypeDto;
-import com.apipokemon.apipokemon.dtos.TypeRelationsDto;
-import com.apipokemon.apipokemon.model.Pokemon;
-import com.apipokemon.apipokemon.model.Type;
-import com.apipokemon.apipokemon.service.PokemonService;
+import com.apipokemon.apipokemon.dtos.TypeDtoAllTypes;
 import com.apipokemon.apipokemon.service.TypeService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -28,10 +20,10 @@ public class TypeController {
 //        return service.listarPokemons();
 //    }
 
-    @GetMapping("/get_all")
-    public List<Type> getRelations(){
+    @GetMapping("/save_all")
+    public List<TypeDtoAllTypes> saveAllTypes(){
 
-        return service.getAllTypes();
+        return service.saveAllTypes();
     }
 
 }

@@ -3,6 +3,9 @@ package com.apipokemon.apipokemon.service;
 import com.apipokemon.apipokemon.dtos.PokemonDto;
 import com.apipokemon.apipokemon.dtos.TypeDto;
 import com.apipokemon.apipokemon.model.Pokemon;
+import com.apipokemon.apipokemon.model.Type;
+import com.apipokemon.apipokemon.repository.PokemonRepository;
+import com.apipokemon.apipokemon.repository.TypeRepository;
 import lombok.AllArgsConstructor;
 import org.json.*;
 import org.apache.tomcat.util.json.ParseException;
@@ -14,25 +17,73 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @AllArgsConstructor
 @Service
 @ResponseBody
 public class PokemonService {
 
-    private UriComponents uri;  //https://pokeapi.co/api/v2/pokemon/35
-    private RestTemplate template;
+    //Exemplo: https://pokeapi.co/api/v2/pokemon/35
+    private final UriComponents uri     = UriComponentsBuilder.newInstance()
+            .scheme("https")
+            .host("pokeapi.co/")
+            .path("api/v2/")
+            //.queryParam("idOuNome","all")
+            .build();
 
-    public PokemonService() {
-        this.uri = UriComponentsBuilder.newInstance()
-                .scheme("https")
-                .host("pokeapi.co/")
-                .path("api/v2/")
-                //.queryParam("idOuNome","all")
-                .build();
-        this.template = new RestTemplateBuilder()
-                .rootUri(uri.toUriString())
-                .build();
+    private final RestTemplate template = new RestTemplateBuilder()
+            .rootUri(uri.toUriString())
+            .build();
+
+    private final PokemonRepository pokemonRepository;
+
+    private final TypeRepository    typeRepository;
+
+
+    @Transactional
+    public List<Pokemon> saveAllPokemon() {
+        String jString = template.getForObject("/pokemon/", String.class);
+        JSONObject jObj = new JSONObject(jString);
+        JSONArray jArrPokemon = jObj.getJSONArray("results");
+
+        List<Type> tipos = typeRepository.findAll();
+
+        pegandoPokemons: for(int i = 0; i < jArrPokemon.length(); i++){
+            JSONObject elementoArr = jArrPokemon.getJSONObject(i);
+            Pokemon pokemon = new Pokemon();
+            pokemon.setTypes(new ArrayList<>());
+            pokemon.setName(elementoArr.getString("name"));
+            String idString = elementoArr.getString("url")
+                    .substring(33).replace("/", "");
+            pokemon.setId(Long.parseLong(idString));
+            pokemonRepository.save(pokemon);
+
+            //Adicionando tipo(s)
+            String jPokeS = template.getForObject("/pokemon/"+idString, String.class);
+            JSONObject jPokeObj = new JSONObject(jPokeS);
+            JSONArray jArrTypes = jPokeObj.getJSONArray("types");
+            pegandoTiposDosPokemons: for (int j = 0; j < jArrTypes.length(); j++) {
+                JSONObject typesElement = jArrTypes.getJSONObject(j);
+                JSONObject gettingTypeName = typesElement.getJSONObject("type");
+                String sTipo = gettingTypeName.getString("name");
+                forListaTipo: for (Type elemento : tipos) {
+                    if(elemento.getName().contains(sTipo)){
+                        pokemon.getTypes().add(elemento);
+                        String slot = (typesElement.getInt("slot")==1) ? "p" : "s";
+                        typeRepository.relacionarPokemonTipo(pokemon.getId(), elemento.getId(), slot);
+                        break forListaTipo;
+                    }
+                }
+            }
+//            pokemonRepository.save(pokemon); //tirar esse funciona, mas não salva em pokemon direto, apesar da tabela ligação estar ok
+        }
+        System.out.println("Find Pokemon: "+pokemonRepository.findById(1l));
+        System.out.println("----------------------------------------------------\n" +
+                           "Find Tipo: "+typeRepository.findById(1l));
+        return new ArrayList<Pokemon>();
     }
 
 //    @Transactional

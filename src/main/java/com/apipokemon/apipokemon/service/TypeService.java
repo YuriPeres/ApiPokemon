@@ -1,5 +1,6 @@
 package com.apipokemon.apipokemon.service;
 
+import com.apipokemon.apipokemon.dtos.TypeDtoAllTypes;
 import com.apipokemon.apipokemon.model.Type;
 import com.apipokemon.apipokemon.repository.TypeRepository;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -39,7 +41,7 @@ public class TypeService {
 
 
     @Transactional
-    public List<Type>  getAllTypes() {
+    public List<TypeDtoAllTypes> saveAllTypes() {
         String jString = template.getForObject("/type/", String.class);
         JSONObject jObj = new JSONObject(jString);
         JSONArray jArrTypes = jObj.getJSONArray("results");
@@ -54,6 +56,16 @@ public class TypeService {
         }
 
 
-        return typeRepository.findAll();
+        return converterTypeParaDto(typeRepository.findAll());
+    }
+
+
+    private List<TypeDtoAllTypes> converterTypeParaDto(List<Type> tipos){
+        List<TypeDtoAllTypes> dtos = new ArrayList<>();
+        for (Type elemento: tipos) {
+            dtos.add(new TypeDtoAllTypes(elemento));
+        }
+
+        return dtos;
     }
 }

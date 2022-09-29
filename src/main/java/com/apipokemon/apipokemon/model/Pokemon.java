@@ -19,9 +19,9 @@ public class Pokemon {
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
-            name = "tb_pokemon_type",
+            name = "tb_pokemon_tipo",
             joinColumns        = @JoinColumn(name = "id_pokemon", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "id_telefone", referencedColumnName = "id")
+            inverseJoinColumns = @JoinColumn(name = "id_tipo", referencedColumnName = "id")
     )
     private List<Type> types;
 
