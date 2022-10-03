@@ -15,4 +15,15 @@ public interface TypeRepository extends JpaRepository<Type, Long> {
                    "values (:idPokemon, :idTipo, :flagSlot)", nativeQuery = true)
     void relacionarPokemonTipo(@Param("idPokemon") Long idPokemon, @Param("idTipo") Long idTipo,
                                @Param("flagSlot") String flagSlot);
+
+    @Modifying
+    @Query(value = "UPDATE tb_pokemon_tipo SET flag_slot=:flagSlot " +
+            "WHERE id_pokemon=:idPokemon AND id_tipo=:idTipo", nativeQuery = true)
+    void addRelacionarPokemonTipo(@Param("idPokemon") Long idPokemon, @Param("idTipo") Long idTipo,
+                               @Param("flagSlot") String flagSlot);
+
+
+    @Modifying
+    @Query(value = "DELETE FROM ONLY (tb_pokemon_tipo)", nativeQuery = true)
+    void deletarTodosVinculosComPokemons();
 }

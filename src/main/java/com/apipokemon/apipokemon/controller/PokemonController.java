@@ -32,4 +32,9 @@ public class PokemonController {
         return pokemonService.saveAllPokemon();
     }
 
+    @GetMapping("/linking_tp")
+    public List<Pokemon> typePokemonsLinks(){
+        return pokemonService.typePokemonLinks();
+    }
+
 }

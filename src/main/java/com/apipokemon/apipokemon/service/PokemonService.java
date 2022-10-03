@@ -1,14 +1,13 @@
 package com.apipokemon.apipokemon.service;
 
 import com.apipokemon.apipokemon.dtos.PokemonDto;
-import com.apipokemon.apipokemon.dtos.TypeDto;
 import com.apipokemon.apipokemon.model.Pokemon;
 import com.apipokemon.apipokemon.model.Type;
 import com.apipokemon.apipokemon.repository.PokemonRepository;
 import com.apipokemon.apipokemon.repository.TypeRepository;
 import lombok.AllArgsConstructor;
-import org.json.*;
-import org.apache.tomcat.util.json.ParseException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +54,7 @@ public class PokemonService {
             JSONObject elementoArr = jArrPokemon.getJSONObject(i);
             Pokemon pokemon = new Pokemon();
             pokemon.setTypes(new ArrayList<>());
+
             pokemon.setName(elementoArr.getString("name"));
             String idString = elementoArr.getString("url")
                     .substring(33).replace("/", "");
@@ -62,7 +62,46 @@ public class PokemonService {
             pokemonRepository.save(pokemon);
 
             //Adicionando tipo(s)
-            String jPokeS = template.getForObject("/pokemon/"+idString, String.class);
+//            String jPokeS = template.getForObject("/pokemon/"+idString, String.class);
+//            JSONObject jPokeObj = new JSONObject(jPokeS);
+//            JSONArray jArrTypes = jPokeObj.getJSONArray("types");
+//            pegandoTiposDosPokemons: for (int j = 0; j < jArrTypes.length(); j++) {
+//                JSONObject typesElement = jArrTypes.getJSONObject(j);
+//                JSONObject gettingTypeName = typesElement.getJSONObject("type");
+//                String sTipo = gettingTypeName.getString("name");
+//                forListaTipo: for (Type elemento : tipos) {
+//                    if(elemento.getName().contains(sTipo)){
+//                        pokemon.getTypes().add(elemento);
+//                        String slot = (typesElement.getInt("slot")==1) ? "p" : "s";
+//                        typeRepository.relacionarPokemonTipo(pokemon.getId(), elemento.getId(), slot);
+//                        break forListaTipo;
+//                    }
+//                }
+//                System.out.println("pokemon -> "+pokemon);
+//            }
+            //pokemonRepository.save(pokemon); //tirar esse funciona, mas não salva em pokemon direto, apesar da tabela ligação estar ok
+        }
+        System.out.println("Find Pokemon: "+pokemonRepository.findById(1l));
+        System.out.println("----------------------------------------------------\n" +
+                           "Find Tipo: "+typeRepository.findById(1l));
+        return new ArrayList<Pokemon>();
+    }
+
+    @Transactional
+    public List<Pokemon> typePokemonLinks() {
+
+        try{
+            typeRepository.deletarTodosVinculosComPokemons();
+        } catch (Exception e){
+
+        }
+
+        List<Pokemon> pokemons = pokemonRepository.findAll();
+        List<Type> tipos = typeRepository.findAll();
+
+        pegandoPokemons: for(Pokemon pokemon : pokemons){
+            //Adicionando tipo(s)
+            String jPokeS = template.getForObject("/pokemon/"+pokemon.getId(), String.class);
             JSONObject jPokeObj = new JSONObject(jPokeS);
             JSONArray jArrTypes = jPokeObj.getJSONArray("types");
             pegandoTiposDosPokemons: for (int j = 0; j < jArrTypes.length(); j++) {
@@ -72,19 +111,38 @@ public class PokemonService {
                 forListaTipo: for (Type elemento : tipos) {
                     if(elemento.getName().contains(sTipo)){
                         pokemon.getTypes().add(elemento);
-                        String slot = (typesElement.getInt("slot")==1) ? "p" : "s";
-                        typeRepository.relacionarPokemonTipo(pokemon.getId(), elemento.getId(), slot);
+//                        String slot = (typesElement.getLong("slot")==2) ? "s" : "p" ; //typesElement.getInt("slot")
+//                        System.out.println("----\nPokemon ="+pokemon+"\nSlot ="+slot);
+//                        typeRepository.addRelacionarPokemonTipo(pokemon.getId(), elemento.getId(), slot);
+                        String slot;
+                        if(typesElement.getInt("slot")==1){
+                            slot = "p";
+                            System.out.println("Entrou no IF?\n" +
+                                    pokemon.getTypes());
+                            typeRepository.addRelacionarPokemonTipo(pokemon.getId(),
+                                    pokemon.getTypes().get(0).getId(), slot);
+                        }
+                        if (typesElement.getInt("slot")==2) {
+                            slot = "s";
+                            System.out.println("Entrou no SEGUNDO IF?\n" +
+                                    pokemon.getTypes());
+                            typeRepository.addRelacionarPokemonTipo(pokemon.getId(),
+                                    pokemon.getTypes().get(0).getId(), slot);
+                        }
                         break forListaTipo;
                     }
                 }
+
             }
-//            pokemonRepository.save(pokemon); //tirar esse funciona, mas não salva em pokemon direto, apesar da tabela ligação estar ok
+            pokemonRepository.save(pokemon); //tirar esse funciona, mas não salva em pokemon direto, apesar da tabela ligação estar ok
         }
         System.out.println("Find Pokemon: "+pokemonRepository.findById(1l));
         System.out.println("----------------------------------------------------\n" +
-                           "Find Tipo: "+typeRepository.findById(1l));
+                "Find Tipo: "+typeRepository.findById(1l));
         return new ArrayList<Pokemon>();
     }
+
+
 
 //    @Transactional
 //    public List<Pokemon> listarPokemons() {

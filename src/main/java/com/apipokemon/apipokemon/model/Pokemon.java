@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.List;
 
-@Entity(name = "tb_pokemon") @Data
+@Entity()
+@Table(name = "tb_pokemon")
+@Data
 @AllArgsConstructor @NoArgsConstructor
 public class Pokemon {
 
@@ -17,11 +19,11 @@ public class Pokemon {
     @Column(name = "name")
     private String name;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany()
     @JoinTable(
             name = "tb_pokemon_tipo",
-            joinColumns        = @JoinColumn(name = "id_pokemon", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "id_tipo", referencedColumnName = "id")
+            joinColumns        = {@JoinColumn(name = "id_pokemon", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "id_tipo", referencedColumnName = "id")}
     )
     private List<Type> types;
 
