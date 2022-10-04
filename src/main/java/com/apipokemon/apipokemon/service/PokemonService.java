@@ -26,7 +26,7 @@ import java.util.List;
 public class PokemonService {
 
     //Exemplo: https://pokeapi.co/api/v2/pokemon/35
-    private final UriComponents uri     = UriComponentsBuilder.newInstance()
+    private final UriComponents uri = UriComponentsBuilder.newInstance()
             .scheme("https")
             .host("pokeapi.co/")
             .path("api/v2/")
@@ -39,18 +39,21 @@ public class PokemonService {
 
     private final PokemonRepository pokemonRepository;
 
-    private final TypeRepository    typeRepository;
+    private final TypeRepository typeRepository;
 
 
     @Transactional
     public List<Pokemon> saveAllPokemon() {
         String jString = template.getForObject("/pokemon/", String.class);
         JSONObject jObj = new JSONObject(jString);
+        jString = template.getForObject("/pokemon/" + "?limit=" + jObj.get("count"), String.class);
+        jObj = new JSONObject(jString);
         JSONArray jArrPokemon = jObj.getJSONArray("results");
 
         List<Type> tipos = typeRepository.findAll();
 
-        pegandoPokemons: for(int i = 0; i < jArrPokemon.length(); i++){
+        pegandoPokemons:
+        for (int i = 0; i < jArrPokemon.length(); i++) {
             JSONObject elementoArr = jArrPokemon.getJSONObject(i);
             Pokemon pokemon = new Pokemon();
             pokemon.setTypes(new ArrayList<>());
@@ -60,88 +63,54 @@ public class PokemonService {
                     .substring(33).replace("/", "");
             pokemon.setId(Long.parseLong(idString));
             pokemonRepository.save(pokemon);
-
-            //Adicionando tipo(s)
-//            String jPokeS = template.getForObject("/pokemon/"+idString, String.class);
-//            JSONObject jPokeObj = new JSONObject(jPokeS);
-//            JSONArray jArrTypes = jPokeObj.getJSONArray("types");
-//            pegandoTiposDosPokemons: for (int j = 0; j < jArrTypes.length(); j++) {
-//                JSONObject typesElement = jArrTypes.getJSONObject(j);
-//                JSONObject gettingTypeName = typesElement.getJSONObject("type");
-//                String sTipo = gettingTypeName.getString("name");
-//                forListaTipo: for (Type elemento : tipos) {
-//                    if(elemento.getName().contains(sTipo)){
-//                        pokemon.getTypes().add(elemento);
-//                        String slot = (typesElement.getInt("slot")==1) ? "p" : "s";
-//                        typeRepository.relacionarPokemonTipo(pokemon.getId(), elemento.getId(), slot);
-//                        break forListaTipo;
-//                    }
-//                }
-//                System.out.println("pokemon -> "+pokemon);
-//            }
-            //pokemonRepository.save(pokemon); //tirar esse funciona, mas não salva em pokemon direto, apesar da tabela ligação estar ok
         }
-        System.out.println("Find Pokemon: "+pokemonRepository.findById(1l));
-        System.out.println("----------------------------------------------------\n" +
-                           "Find Tipo: "+typeRepository.findById(1l));
-        return new ArrayList<Pokemon>();
+        typePokemonLinks();
+        return pokemonRepository.findAll();
     }
 
     @Transactional
     public List<Pokemon> typePokemonLinks() {
 
-        try{
+        try {
             typeRepository.deletarTodosVinculosComPokemons();
-        } catch (Exception e){
-
+        } catch (Exception e) {
         }
-
         List<Pokemon> pokemons = pokemonRepository.findAll();
         List<Type> tipos = typeRepository.findAll();
-
-        pegandoPokemons: for(Pokemon pokemon : pokemons){
+        pegandoPokemons:
+        for (Pokemon pokemon : pokemons) {
             //Adicionando tipo(s)
-            String jPokeS = template.getForObject("/pokemon/"+pokemon.getId(), String.class);
+            String jPokeS = template.getForObject("/pokemon/" + pokemon.getId(), String.class);
             JSONObject jPokeObj = new JSONObject(jPokeS);
             JSONArray jArrTypes = jPokeObj.getJSONArray("types");
-            pegandoTiposDosPokemons: for (int j = 0; j < jArrTypes.length(); j++) {
+            pegandoTiposDosPokemons:
+            for (int j = 0; j < jArrTypes.length(); j++) {
                 JSONObject typesElement = jArrTypes.getJSONObject(j);
                 JSONObject gettingTypeName = typesElement.getJSONObject("type");
                 String sTipo = gettingTypeName.getString("name");
-                forListaTipo: for (Type elemento : tipos) {
-                    if(elemento.getName().contains(sTipo)){
+                forListaTipos:
+                for (Type elemento : tipos) {
+                    if (elemento.getName().contains(sTipo)) {
                         pokemon.getTypes().add(elemento);
-//                        String slot = (typesElement.getLong("slot")==2) ? "s" : "p" ; //typesElement.getInt("slot")
-//                        System.out.println("----\nPokemon ="+pokemon+"\nSlot ="+slot);
-//                        typeRepository.addRelacionarPokemonTipo(pokemon.getId(), elemento.getId(), slot);
-                        String slot;
-                        if(typesElement.getInt("slot")==1){
-                            slot = "p";
-                            System.out.println("Entrou no IF?\n" +
-                                    pokemon.getTypes());
+                        if (jArrTypes.length() == 2 && j == 1) {
                             typeRepository.addRelacionarPokemonTipo(pokemon.getId(),
-                                    pokemon.getTypes().get(0).getId(), slot);
-                        }
-                        if (typesElement.getInt("slot")==2) {
-                            slot = "s";
-                            System.out.println("Entrou no SEGUNDO IF?\n" +
-                                    pokemon.getTypes());
+                                    pokemon.getTypes().get(0).getId(), "p");
                             typeRepository.addRelacionarPokemonTipo(pokemon.getId(),
-                                    pokemon.getTypes().get(0).getId(), slot);
+                                    pokemon.getTypes().get(1).getId(), "s");
+                        } else if (jArrTypes.length() == 1) {
+                            typeRepository.addRelacionarPokemonTipo(pokemon.getId(),
+                                    pokemon.getTypes().get(0).getId(), "p");
+                        } else {
+                            continue forListaTipos;
                         }
-                        break forListaTipo;
+                        break forListaTipos;
                     }
                 }
-
             }
-            pokemonRepository.save(pokemon); //tirar esse funciona, mas não salva em pokemon direto, apesar da tabela ligação estar ok
+            pokemonRepository.save(pokemon);
         }
-        System.out.println("Find Pokemon: "+pokemonRepository.findById(1l));
-        System.out.println("----------------------------------------------------\n" +
-                "Find Tipo: "+typeRepository.findById(1l));
         return new ArrayList<Pokemon>();
     }
-
 
 
 //    @Transactional
@@ -194,8 +163,8 @@ public class PokemonService {
         pokemon.setId(Long.parseLong(jObj.get("id").toString()));
         pokemon.setName(jObj.get("name").toString());
 
-        System.out.println("AQUI jObj ------------------------------------\n"+jObj.get("id"));
-        System.out.println("AQUI Pokemon------------------------------------\n"+pokemon);
+        System.out.println("AQUI jObj ------------------------------------\n" + jObj.get("id"));
+        System.out.println("AQUI Pokemon------------------------------------\n" + pokemon);
 
 
         return new PokemonDto();
